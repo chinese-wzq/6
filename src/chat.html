@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Interface</title>
+    <link rel="stylesheet" href="chat.css">
+</head>
+<body>
+    <div class="chat-wrapper">
+        <div class="header">
+            <div class="menu-button" onclick="toggleSideMenu()">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+        </div>
+        <div class="overlay" id="overlay"></div>
+        <div class="side-menu" id="side-menu">
+            <div class="menu-header">
+                <div class="menu-button" onclick="toggleSideMenu()">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+            </div>
+            <div class="model-select">
+                <span class="model-label">模型</span>
+                <select class="model-dropdown">
+                    <option value="gpt-4o">GPT-4o</option>
+                    <option value="gpt-o1">GPT-o1</option>
+                </select>
+            </div>
+        </div>
+        <div class="chat-container">
+            <div class="chat-area">
+                <div class="message ai">
+                    今天，有什么要和我聊的？☺️
+                </div>
+
+            </div>
+        </div>
+        <div class="input-container">
+            <div class="action-buttons">
+                <button class="action-button disabled" onclick="void(0)"><img src="button_image/上传文件.png" style="--button-image-size: 24px;"></button>
+                <button class="action-button disabled" onclick="void(0)"><img src="button_image/打开画板.png" style="--button-image-size: 33px;"></button>
+                <button class="action-button send-button" onclick="handleSend()"><img src="button_image/发送.png" style="--button-image-size: 27px;"></button>
+            </div>
+            <div class="input-area">
+                <textarea class="input-field" placeholder="这是一个输入框，在这里，我可以畅所欲言"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script src="qwebchannel.js"></script>
+    <script>
+        function toggleSideMenu() {
+            var sideMenu = document.getElementById("side-menu");
+            var overlay = document.getElementById("overlay");
+            sideMenu.classList.toggle("show");
+            overlay.classList.toggle("show");
+        }
+
+        document.getElementById("overlay").addEventListener("click", function() {
+            toggleSideMenu();
+        });
+
+        let bridge = null;
+        
+        // 确保在页面完全加载后初始化QWebChannel
+        window.onload = function() {
+            if (typeof qt != 'undefined') {
+                new QWebChannel(qt.webChannelTransport, function(channel) {
+                    bridge = channel.objects.bridge;  // 修改为直接赋值
+                    if (bridge) {
+                        console.log("Bridge连接成功，对象可用");
+                    } else {
+                        console.log("Bridge连接成功，但对象未定义");
+                        console.log("可用对象:", Object.keys(channel.objects));
+                    }
+                });
+            } else {
+                console.log("qt对象未定义");
+            }
+        }
+
+        function handleSend() {
+            const input = document.querySelector('.input-field');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // 显示用户消息
+            const chatArea = document.querySelector('.chat-area');
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message user';
+            userMsg.textContent = message;
+            chatArea.appendChild(userMsg);
+
+            // 获取选中的模型
+            const model = document.querySelector('.model-dropdown').value;
+
+            // 清空输入框
+            input.value = '';
+            
+            console.log("正在尝试发送消息到Python");
+    
+            // 添加bridge存在性检查
+            if (typeof bridge !== 'undefined' && bridge) {
+                bridge.handleMessage(message, model).then(function(response) {
+                    const aiMsg = document.createElement('div');
+                    aiMsg.className = 'message ai';
+                    aiMsg.textContent = response;
+                    chatArea.appendChild(aiMsg);
+                }).catch(function(error) {
+                    console.error('调用 handleMessage 时出错:', error);
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'message error';
+                    errorMsg.textContent = "发送消息时出错，请检查与后端的连接";
+                    chatArea.appendChild(errorMsg);
+                });
+            } else {
+                console.error("bridge对象未定义或为null");
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'message error';
+                errorMsg.textContent = "未能连接到后端服务";
+                chatArea.appendChild(errorMsg);
+            }
+        }
+    </script>
+</body>
+</html>
