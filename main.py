@@ -1,38 +1,18 @@
+import os
 import sys
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QVBoxLayout,
-    QWidget, QLabel, QStackedWidget
-)
+# Add the project root directory to the Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
 
-from src import ChatWindow, Menu
+from PyQt5.QtWidgets import QApplication
+from src.ui.main_window import MainWindow
 
-
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super(MainWindow, self).__init__()
-        self.setGeometry(500, 500, 800, 800)
-
-        # 设置窗口透明度
-        self.setWindowOpacity(1)
-        # 设置窗口为无边框
-        self.setWindowFlags(Qt.FramelessWindowHint)
-        # 确保窗口背景透明
-        self.setAttribute(Qt.WA_TranslucentBackground)
-
-        self.stacked_widget = QStackedWidget()  # 将在菜单、设置、AI聊天、整理等窗口之间切换
-        self.setCentralWidget(self.stacked_widget)
-        self.stacked_widget.addWidget(Menu(self))
-        self.stacked_widget.addWidget(ChatWindow(self))
-
-    def open_ai_chat(self):
-        self.stacked_widget.setCurrentIndex(1)
-        self.stacked_widget.currentWidget().start_open_animation()
-
-
-if __name__ == "__main__":
+def main():
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()
