@@ -12,7 +12,10 @@ def main():
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
-    sys.exit(app.exec_())
+    try:
+        sys.exit(app.exec_())
+    except KeyboardInterrupt:
+        window.cleanup()
 
 if __name__ == "__main__":
     main()

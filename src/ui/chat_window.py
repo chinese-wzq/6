@@ -82,10 +82,7 @@ class ChatWindow(QWidget):
         self.opacity_animation.setDuration(300)  # 300毫秒的动画时长
         self.opacity_animation.setStartValue(0.0)
         self.opacity_animation.setEndValue(1.0)
-        
-        self.animation_group = QParallelAnimationGroup()
-        self.animation_group.addAnimation(self.opacity_animation)
 
     def start_open_animation(self):
         self.opacity = 0.0
-        self.animation_group.start()
+        self.opacity_animation.start()

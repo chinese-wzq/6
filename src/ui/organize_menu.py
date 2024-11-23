@@ -36,14 +36,14 @@ class OrganizeMenu(QWidget):
         self._create_divider_lines()
 
     def _create_title_label(self):
-        self.up_text = QLabel("整理", self)
-        self._setup_label_style(self.up_text, 15, QFont.Normal, 
+        self.title_text = QLabel("整理", self)
+        self._setup_label_style(self.title_text, 15, QFont.Normal, 
                                 color=QColor(255, 255, 255, 153))
-        self.up_text.move(18, self.main_window.height() - 250 + 8)
+        self.title_text.move(18, self.main_window.height() - 250 + 8)
         
         self.up_text_opacity_effect = QGraphicsOpacityEffect()
         self.up_text_opacity_effect.setOpacity(0)
-        self.up_text.setGraphicsEffect(self.up_text_opacity_effect)
+        self.title_text.setGraphicsEffect(self.up_text_opacity_effect)
 
     def _create_start_organize_button(self):
         self.start_button = QLabel("开始整理", self)

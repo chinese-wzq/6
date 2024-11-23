@@ -16,10 +16,21 @@ class MainMenu(QWidget):
         self._setup_button_animations()
 
     def _create_buttons(self):
-        self.advice = self._create_circle_button(5, "建议", 18, QFont.Medium)
-        self.ai_chat = self._create_circle_button(4, "AI", 30, QFont.Black, self._open_ai_chat)
-        self.organize = self._create_circle_button(3, "整理", 18, QFont.Medium, self._open_organize_menu)
-        self.settings = self._create_circle_button(2, "设置", 18, QFont.Medium)
+        ( 
+            self.advice,
+            self.ai_chat,
+            self.organize,
+            self.settings
+        ) = [
+            self._create_circle_button(*config) 
+            # 按钮配置格式: (序号, 文本, 字体大小, 字体粗细, 回调函数)
+            for config in [
+                (5, "建议", 18, QFont.Medium, None),
+                (4, "AI", 30, QFont.Black, self._open_ai_chat),
+                (3, "整理", 18, QFont.Medium, self._open_organize_menu),
+                (2, "设置", 18, QFont.Medium, None)
+            ]
+        ] # 依次为各个按钮赋值，创建按钮的参数一一对应
         self.settings.move(0, self.main_window.height()- 6 -80*2)
         self.icon = CircleButton(1, "6", 40, QFont.Medium, 
                                  movable=True, 
@@ -55,31 +66,38 @@ class MainMenu(QWidget):
         # 可以在这里添加图标移动时的额外逻辑
         pass
 
-    def unfold(self, duration: int = 1000):
+    def _fold_unfold_animation(self, unfold_or_fold: bool, duration: int):
+        """
+        实际执行折叠或展开动画
+        这个函数会停止之前的动画，然后根据传入的参数执行折叠或展开动画
+
+        :param unfold_or_fold: True为展开，False为折叠
+        :param duration: 动画持续时间
+        """
+
         self.animation_group.stop()
-        self.icon.press_callback = self.fold
+        self.icon.press_callback = {True: self.fold, False: self.unfold}[unfold_or_fold]
+        self.icon.unfolded = unfold_or_fold
         
         for i in range(self.animation_group.animationCount()):
             animation = self.animation_group.animationAt(i)
             target = animation.targetObject()
-            animation.setStartValue(target.get_animation_height())
-            animation.setEndValue(80 * target.number)
+            target.unfolded = unfold_or_fold
+            if unfold_or_fold:
+                animation.setStartValue(target.get_animation_height())
+                animation.setEndValue(80 * target.number)
+            else:
+                animation.setStartValue(target.get_animation_height())
+                animation.setEndValue(80)
             animation.setDuration(duration)
         
         self.animation_group.start()
 
+    def unfold(self, duration: int = 1000):
+        self._fold_unfold_animation(True, duration)
+
     def fold(self, duration: int = 1000):
-        self.animation_group.stop()
-        self.icon.press_callback = self.unfold
-        
-        for i in range(self.animation_group.animationCount()):
-            animation = self.animation_group.animationAt(i)
-            target = animation.targetObject()
-            animation.setStartValue(target.get_animation_height())
-            animation.setEndValue(80)
-            animation.setDuration(duration)
-        
-        self.animation_group.start()
+        self._fold_unfold_animation(False, duration)
 
     def _open_ai_chat(self):
         self.fold(500)
