@@ -1,10 +1,5 @@
-from PyQt5.QtCore import (
-    QRect, pyqtProperty, QEasingCurve, 
-    QPropertyAnimation, Qt, QTimer, QPoint
-)
-from PyQt5.QtGui import (
-    QPainter, QBrush, QColor, QPen, QFont
-)
+from PyQt5.QtCore import QRect, pyqtProperty,Qt, QTimer
+from PyQt5.QtGui import QPainter, QBrush, QColor, QPen, QFont
 from PyQt5.QtWidgets import QWidget
 
 from src.config.config_manager import config_manager
@@ -12,27 +7,28 @@ from src.config.config_manager import config_manager
 class CircleButton(QWidget):
     def __init__(
         self, 
-        number, 
-        text, 
-        text_size, 
+        number:int, 
+        text:str, 
+        font_pointSize:int, 
         font_weight, 
-        movable=False, 
+        movable: bool=False, 
         parent=None, 
         main_window=None, 
-        moving_callback=None
+        moving_callback: callable=None,
+        press_callback: callable=None
     ):
         super().__init__(parent)
         self._animation_alpha = 255
         self.number = number
         self.text = text
-        self.text_size = text_size
+        self.font_pointSize = font_pointSize
         self.font_weight = font_weight
         
         self.movable = movable
         self.mouse_drag_pos = None
         self.is_moving = False
         
-        self.press_callback = None
+        self.press_callback = press_callback
         self.main_window = main_window
         self.moving_callback = moving_callback
 
@@ -155,9 +151,7 @@ class CircleButton(QWidget):
 
     def _load_config_and_setup_variables(self):
         """
-        加载配置文件，并为paintEvent准备需要用到的所有变量
-        有点太复杂了？不要慌，我也跟你一样慌
-        但是，我必须告诉你一个残酷的事实，那就是这里的计算已经是最精简的了
+        加载配置文件，设置窗口，根据需要移动到特定位置，并为paintEvent准备需要用到的所有变量
         """
         self._border_radius = config_manager.config["主题"]["圆角半径"]
         self._border_width = config_manager.config["主题"]["数字6标识"]["描边宽度"]
@@ -175,7 +169,7 @@ class CircleButton(QWidget):
                                          self._bottom_minus_half_border_width - self._border_radius_times_2,
                                          self._border_radius_times_2,
                                          self._border_radius_times_2)
-        self._QFont = QFont(config_manager.config["主题"]["字体"], self.text_size, self.font_weight)
+        self._QFont = QFont(config_manager.config["主题"]["字体"], self.font_pointSize, self.font_weight)
         self._QFont_color = list(map(int, config_manager.config["主题"]["数字6标识"]["字体颜色"].split(',')))
 
         self.update()
