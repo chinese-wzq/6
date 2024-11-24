@@ -35,8 +35,10 @@ class CircleButton(QWidget):
         self.unfolded = False
 
         self._load_config_and_setup_variables()
-        
         self._setup_move_timer()
+
+        global config_manager
+        config_manager.register_callback(self._load_config_and_setup_variables)
         
     def _setup_move_timer(self):
         '''

@@ -15,6 +15,9 @@ class MainMenu(QWidget):
         self._create_buttons()
         self._setup_button_animations()
 
+        global config_manager
+        config_manager.register_callback(self._load_config_and_setup_variables)
+
     def _create_buttons(self):
         def create_and_move_button(number:int, text:str, font_pointSize:int,
                                    font_weight, movable: bool=False, parent=None,
