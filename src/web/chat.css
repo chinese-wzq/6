@@ -153,6 +153,38 @@ body {
 .message.ai {
     background: #e0e0e0;
     align-self: flex-start;
+    position: relative;
+}
+
+/* 添加markdown样式 */
+.message.ai pre {
+    background: #f4f4f4;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto;
+}
+
+.message.ai code {
+    font-family: Monaco, Consolas, "Courier New", monospace;
+    background: #f4f4f4;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.message.ai p {
+    margin-bottom: 10px;
+}
+
+.message.ai ul, .message.ai ol {
+    margin-left: 20px;
+    margin-bottom: 10px;
+}
+
+.message.ai blockquote {
+    border-left: 4px solid #ddd;
+    padding-left: 10px;
+    margin: 10px 0;
+    color: #666;
 }
 
 .message.user {
@@ -256,4 +288,45 @@ body {
     padding: 10px;
     margin: 5px;
     border-radius: 5px;
+}
+
+.loading-dots {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 15px;
+    max-width: 70%;
+    margin: 10px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    align-self: flex-start;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background: #666;
+    border-radius: 80%;
+    animation: pulse 1.5s infinite;
+}
+
+.dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+.model-tag {
+    position: absolute;
+    bottom: -15px;
+    right: 5px;
+    font-size: 15px;
+    color: #666;
 }

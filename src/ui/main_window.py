@@ -30,6 +30,8 @@ class MainWindow(QMainWindow):
         self.stacked_widget.addWidget(self.chat_window)
         self.stacked_widget.addWidget(self.organize_menu)
 
+        #self.open_ai_chat()
+
     def open_ai_chat(self):
         self.stacked_widget.setCurrentIndex(1)
         self.stacked_widget.currentWidget().start_open_animation()

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI 聊天界面</title>
     <link rel="stylesheet" href="chat.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
 </head>
 <body>
     <div class="chat-wrapper">
@@ -62,64 +63,6 @@
         </div>
     </div>
     <script src="qwebchannel.js"></script>
-    <script>
-        function toggleSideMenu() {
-            const sideMenu = document.getElementById("side-menu");
-            const overlay = document.getElementById("overlay");
-            sideMenu.classList.toggle("show");
-            overlay.classList.toggle("show");
-        }
-
-        document.getElementById("overlay").addEventListener("click", toggleSideMenu);
-
-        let bridge = null;
-        
-        window.onload = function() {
-            if (typeof qt !== 'undefined') {
-                new QWebChannel(qt.webChannelTransport, function(channel) {
-                    bridge = channel.objects.bridge;
-                    console.log(bridge ? "Bridge连接成功" : "Bridge连接失败");
-                });
-            } else {
-                console.log("qt对象未定义");
-            }
-        }
-
-        function handleSend() {
-            const input = document.querySelector('.input-field');
-            const message = input.value.trim();
-            if (!message) return;
-
-            const chatArea = document.querySelector('.chat-area');
-            const userMsg = document.createElement('div');
-            userMsg.className = 'message user';
-            userMsg.textContent = message;
-            chatArea.appendChild(userMsg);
-
-            const model = document.querySelector('.model-dropdown').value;
-            input.value = '';
-            
-            if (bridge && typeof bridge.handleMessage === 'function') {
-                bridge.handleMessage(message, model).then(function(response) {
-                    const aiMsg = document.createElement('div');
-                    aiMsg.className = 'message ai';
-                    aiMsg.textContent = response;
-                    chatArea.appendChild(aiMsg);
-                }).catch(function(error) {
-                    console.error('调用 handleMessage 时出错:', error);
-                    const errorMsg = document.createElement('div');
-                    errorMsg.className = 'message error';
-                    errorMsg.textContent = "发送消息时出错，请检查与后端的连接";
-                    chatArea.appendChild(errorMsg);
-                });
-            } else {
-                console.error("bridge对象未定义或handleMessage方法不存在");
-                const errorMsg = document.createElement('div');
-                errorMsg.className = 'message error';
-                errorMsg.textContent = "未能连接到后端服务";
-                chatArea.appendChild(errorMsg);
-            }
-        }
-    </script>
+    <script src="chat.js"></script>
 </body>
 </html>

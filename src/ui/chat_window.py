@@ -6,17 +6,46 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 from PyQt5.QtWebChannel import QWebChannel
 from PyQt5.QtCore import (
     Qt, QUrl, QObject, pyqtSlot, 
-    QPropertyAnimation, QParallelAnimationGroup, pyqtProperty
+    QPropertyAnimation, pyqtProperty, QThread, pyqtSignal
 )
 from PyQt5.QtGui import QFont
 
 from src.components.circle_button import CircleButton
 
+class MessageWorker(QThread):
+    finished = pyqtSignal(str, str, str)  # 信号：消息、模型、响应
+
+    def __init__(self, message, model):
+        super().__init__()
+        self.message = message
+        self.model = model
+
+    def run(self):
+        import time
+        time.sleep(0.2)  # 模拟耗时操作
+        response = f"# 这是来自{self.model}的回复: {self.message}"
+        self.finished.emit(self.message, self.model, response)
+
 class WebBridge(QObject):
-    @pyqtSlot(str, str, result=str)
-    def handleMessage(self, message, model):
-        # 模拟AI回复，实际应替换为真实的AI服务
-        return f"这是来自{model}的回复: {message}"
+    def __init__(self, web_view):
+        super().__init__()
+        self.web_view = web_view
+        self.workers = []  # 保持对worker的引用
+
+    @pyqtSlot(str, str)
+    def handle_message(self, message, model):
+        worker = MessageWorker(message, model)
+        worker.finished.connect(self._handle_response)
+        self.workers.append(worker)
+        worker.start()
+
+    def _handle_response(self, message, model, response):
+        # 通过JavaScript回调发送响应
+        self.web_view.page().runJavaScript(f'receiveResponse("{model}", "{response}");')
+        # 清理完成的worker
+        worker = self.sender()
+        if worker in self.workers:
+            self.workers.remove(worker)
 
 class ChatWindow(QWidget):
     def __init__(self, main_window):
@@ -62,7 +91,7 @@ class ChatWindow(QWidget):
 
     def _setup_bridge(self):
         self.channel = QWebChannel()
-        self.bridge = WebBridge()
+        self.bridge = WebBridge(self.web_view)
         self.channel.registerObject("bridge", self.bridge)
         self.web_view.page().setWebChannel(self.channel)
 
@@ -86,3 +115,4 @@ class ChatWindow(QWidget):
     def start_open_animation(self):
         self.opacity = 0.0
         self.opacity_animation.start()
+
