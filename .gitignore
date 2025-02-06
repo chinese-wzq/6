@@ -3,3 +3,5 @@
 .venv/
 /test/
 __pycache__/
+/设计/手稿.jpg
+.gitignore

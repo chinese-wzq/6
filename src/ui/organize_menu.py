@@ -1,32 +1,48 @@
-from PyQt5.QtCore import (
-    QPropertyAnimation, QParallelAnimationGroup, 
-    pyqtProperty, Qt, QRect
-)
-from PyQt5.QtGui import (
-    QFont, QPalette, QColor, 
-    QPainter, QPen, QBrush
-)
-from PyQt5.QtWidgets import (
-    QWidget, QLabel, QGraphicsOpacityEffect
-)
+from PyQt5.QtGui import QFont, QPalette, QColor
+from PyQt5.QtWidgets import QWidget, QLabel
 
+from src.components.bordered_frame import bordered_frame, BorderedFrame
 from src.components.circle_button import CircleButton
+from src.config.config_manager import register_callback
 
+
+@bordered_frame
 class OrganizeMenu(QWidget):
     def __init__(self, main_window):
         super().__init__()
+        print("OrganizeMenu: 整理菜单是未开发完成的功能，暂时不可用")
+        self.parent_frame: BorderedFrame = None
         self.main_window = main_window
         self.setGeometry(0, 0, main_window.width(), main_window.height())
-        
-        self._animation_alpha = 0
-        
+
         self._setup_elements()
-        self._setup_open_animation()
+
+        register_callback(self._load_config_and_setup_variables)
+
+    def initialize(self):
+        self._load_config_and_setup_variables()
+        self._setup_animation()
+
+    def _setup_animation(self):
+        self.parent_frame.add_to_animation_group__by_effect(
+            [self.title_text, self.start_button, self.history_button, self.line1, self.line2])
+
+    def _load_config_and_setup_variables(self):
+        from src.config.config_manager import config
+        self.parent_frame.open_time = config["动效"]["整理"]["进入时间"]
+        self.parent_frame.close_time = config["动效"]["整理"]["退出时间"]
+        self.parent_frame.real_width, self.parent_frame.real_height = config["主题"]["整理"]["窗口大小"]
+        self.parent_frame.border_width = config["主题"]["数字6标识"]["描边宽度"]
+        self.parent_frame.half_border_width = int(config["主题"]["数字6标识"]["描边宽度"] / 2)
+        self.parent_frame.border_radius = config["主题"]["圆角半径"]
+        self.parent_frame.background_color = list(map(int, config["主题"]["整理"]["背景颜色"].split(',')))
+        self.parent_frame.border_color = list(map(int, config["主题"]["整理"]["描边颜色"].split(',')))
+        self.parent_frame.window_height = self.main_window.height()
 
     def _setup_elements(self):
-        self.icon = CircleButton(1, "6", 40, QFont.Medium, 
-                                 movable=True, 
-                                 parent=self, 
+        self.icon = CircleButton(1, "6", 40, QFont.Medium,
+                                 movable=True,
+                                 parent=self,
                                  main_window=self.main_window)
         self.icon.move(0, self.main_window.height() - 6 - 80)
 
@@ -37,31 +53,19 @@ class OrganizeMenu(QWidget):
 
     def _create_title_label(self):
         self.title_text = QLabel("整理", self)
-        self._setup_label_style(self.title_text, 15, QFont.Normal, 
+        self._setup_label_style(self.title_text, 15, QFont.Normal,
                                 color=QColor(255, 255, 255, 153))
         self.title_text.move(18, self.main_window.height() - 250 + 8)
-        
-        self.up_text_opacity_effect = QGraphicsOpacityEffect()
-        self.up_text_opacity_effect.setOpacity(0)
-        self.title_text.setGraphicsEffect(self.up_text_opacity_effect)
 
     def _create_start_organize_button(self):
         self.start_button = QLabel("开始整理", self)
         self._setup_label_style(self.start_button, 20, QFont.Normal)
         self.start_button.move(18, self.main_window.height() - 250 + 55)
-        
-        self.start_button_opacity_effect = QGraphicsOpacityEffect()
-        self.start_button_opacity_effect.setOpacity(0)
-        self.start_button.setGraphicsEffect(self.start_button_opacity_effect)
 
     def _create_history_button(self):
         self.history_button = QLabel("整理历史记录", self)
         self._setup_label_style(self.history_button, 20, QFont.Normal)
         self.history_button.move(18, self.main_window.height() - 250 + 110)
-        
-        self.history_button_opacity_effect = QGraphicsOpacityEffect()
-        self.history_button_opacity_effect.setOpacity(0)
-        self.history_button.setGraphicsEffect(self.history_button_opacity_effect)
 
     def _create_divider_lines(self):
         self.line1 = self._create_divider(70, 18, self.main_window.height() - 250 + 50)
@@ -72,74 +76,16 @@ class OrganizeMenu(QWidget):
         line.setFixedSize(width, 4)
         line.move(x, y)
         line.setStyleSheet("background-color: rgba(255, 255, 255, 153);")
-        
-        opacity_effect = QGraphicsOpacityEffect()
-        opacity_effect.setOpacity(0)
-        line.setGraphicsEffect(opacity_effect)
-        
         return line
 
-    def _setup_label_style(self, label, font_size, font_weight, color=None):
+    @staticmethod
+    def _setup_label_style(label, font_size, font_weight, color=None):
         label.setFont(QFont("HarmonyOS Sans SC", font_size, font_weight))
         palette = label.palette()
-        
+
         if color:
             palette.setColor(QPalette.WindowText, color)
         else:
             palette.setColor(QPalette.WindowText, QColor(255, 255, 255, 255))
-        
+
         label.setPalette(palette)
-
-    def _setup_open_animation(self):
-        self.open_animation_group = QParallelAnimationGroup(self)
-        
-        self.organize_menu_open_animation = QPropertyAnimation(self, b"animation_alpha")
-        self.organize_menu_open_animation.setDuration(500)
-        self.organize_menu_open_animation.setStartValue(0)
-        self.organize_menu_open_animation.setEndValue(255)
-        self.open_animation_group.addAnimation(self.organize_menu_open_animation)
-
-        # 添加文字和分割线的透明度动画
-        opacity_effects = [
-            self.up_text_opacity_effect,
-            self.start_button_opacity_effect,
-            self.line1.graphicsEffect(),
-            self.history_button_opacity_effect,
-            self.line2.graphicsEffect()
-        ]
-
-        for effect in opacity_effects:
-            text_animation = QPropertyAnimation(effect, b"opacity")
-            text_animation.setDuration(500)
-            text_animation.setStartValue(0)
-            text_animation.setEndValue(1)
-            self.open_animation_group.addAnimation(text_animation)
-
-    def start_open_animation(self):
-        self.open_animation_group.start()
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
-
-        # 设置边框和背景颜色
-        brush = QBrush(QColor(42, 130, 228, self._animation_alpha))
-        painter.setBrush(brush)
-
-        pen = QPen(QColor(72, 143, 224, self._animation_alpha))
-        pen.setWidth(6)
-        painter.setPen(pen)
-
-        # 绘制圆角矩形
-        rect = QRect(0, 0, 270, 250)
-        rect.moveTo(3, self.main_window.height() - 250 - 3)
-        painter.drawRoundedRect(rect, 40, 40)
-
-    @pyqtProperty(int)
-    def animation_alpha(self):
-        return self._animation_alpha
-
-    @animation_alpha.setter
-    def animation_alpha(self, value):
-        self._animation_alpha = value
-        self.update()
